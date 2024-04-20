@@ -1,0 +1,55 @@
+version: "3.9"
+
+name:
+  blossom-all
+
+networks:
+  blossom-net:
+    external: false
+
+services:
+  bl-mysql:
+    image: mysql:8.1.0
+    container_name: "${MYSQL_NAME}"
+    restart: always
+    environment:
+      # 【自行修改】root账户的密码
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      # 【自行修改】新建数据库
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      # 【自行修改】新建用户名
+      MYSQL_USER: "${MYSQL_USER}"
+      # 【自行修改】新建用户的密码
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/my.cnf
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/logs:/var/log
+    networks:
+      - blossom-net
+
+  blossom-backend:
+    image: jasminexzzz/blossom:latest
+    container_name: blossom-backend
+    volumes:
+      # 挂载图片保存路径，如果是windows环境，可以使用如/c/home/bl/img/来指定磁盘
+      - ${BLOSSOM_MOUNT}:/data
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # 【自行修改】配置数据库访问地址
+      SPRING_DATASOURCE_URL: jdbc:mysql://${MYSQL_NAME}:3306/${MYSQL_DATABASE}?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&allowMultiQueries=true&useSSL=false&&serverTimezone=GMT%2B8
+      # 【自行修改】配置数据库用户名
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      # 【自行修改】配置数据库密码
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      # 配置图片保存的磁盘路径，并在 volumes 中将该路径挂载为本地路径，如上方 volumes 中的示例
+      PROJECT_IAAS_BLOS_DEFAULT-PATH: /data/img
+    ports:
+      - "9999:9999"
+    restart: always
+    depends_on:
+      - bl-mysql
+    networks:
+      - blossom-net
