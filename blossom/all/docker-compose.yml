@@ -22,7 +22,7 @@ services:
       # 【自行修改】新建用户的密码
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
     ports:
-      - "3308:3306"
+      - "${MYSQL_PORT}:3306"
     volumes:
       - ./mysql/conf/my.cnf:/etc/my.cnf
       - ./mysql/data:/var/lib/mysql
